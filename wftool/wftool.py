@@ -140,6 +140,10 @@ def status(host, job_id, version, output_format, output):
     """Retrieves the current state for a workflow (Cromwell)"""
     data = client.status(host, job_id, version).json()
 
+    if data.get('status', None) == 'fail':
+        click.echo(data['message'], err=True)
+    exit(1)
+
     if output_format == 'console':
         click.echo(data['status'], file=output)
     else:
