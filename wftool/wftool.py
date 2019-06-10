@@ -5,7 +5,7 @@ import json
 
 import click
 
-from client import client
+from wftool import client
 
 
 @click.group()
