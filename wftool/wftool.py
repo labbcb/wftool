@@ -171,7 +171,10 @@ def outputs(host, job_id, version, output_format, output):
             if type(data['outputs'][task]) is str:
                 click.echo(data['outputs'][task], file=output)
                 continue
-            files = itertools.chain(data['outputs'][task])
+            if any(isinstance(i, list) for i in data['outputs'][task]):
+                files = itertools.chain.from_iterable(data['outputs'][task])
+            else:
+                files = data['outputs'][task]
             for file in files:
                 click.echo(file, file=output)
     elif output_format == 'csv':
@@ -180,7 +183,10 @@ def outputs(host, job_id, version, output_format, output):
             if type(data['outputs'][task]) is str:
                 click.echo('{},{}'.format(task, data['outputs'][task]), file=output)
                 continue
-            files = itertools.chain(data['outputs'][task])
+            if any(isinstance(i, list) for i in data['outputs'][task]):
+                files = itertools.chain.from_iterable(data['outputs'][task])
+            else:
+                files = data['outputs'][task]
             for file in files:
                 click.echo('{},{}'.format(task, file), file=output)
     else:
@@ -213,8 +219,10 @@ def collect(host, job_id, no_task_dir, copy, version, destination):
 
         if type(data['outputs'][task]) is str:
             files = [data['outputs'][task]]
+        elif any(isinstance(i, list) for i in data['outputs'][task]):
+            files = itertools.chain.from_iterable(data['outputs'][task])
         else:
-            files = itertools.chain(data['outputs'][task])
+            files = data['outputs'][task]
 
         for file in files:
             if os.path.exists(file):
