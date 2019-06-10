@@ -84,11 +84,14 @@ def list_jobs(host, api, version, output_format, output):
                                                                      workflow.get('name', '-')),
                        file=output)
     elif output_format == 'csv':
-        click.echo('ID,Name,Status,Start,End,Submitted', file=output)
+        click.echo('ID,Status,Start,End,Submitted,Name', file=output)
         for workflow in data['results']:
-            click.echo('{},{},{},{},{},{}'.format(workflow['id'], workflow['name'], workflow['status'],
-                                                  workflow.get('start', '-'), workflow.get('end', '-'),
-                                                  workflow['submission']),
+            click.echo('{},{},{},{},{},{}'.format(workflow.get('id', ''),
+                                                  workflow.get('status', ''),
+                                                  workflow.get('start', ''),
+                                                  workflow.get('end', ''),
+                                                  workflow.get('submission', ''),
+                                                  workflow.get('name', '')),
                        file=output)
     else:
         click.echo(json.dumps(data), file=output)
