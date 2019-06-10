@@ -78,7 +78,8 @@ def list_jobs(host, api, version, output_format, output):
         for workflow in data['results']:
             click.echo('{:36}  {:9}  {:24}  {:24}  {:24}  {}'.format(workflow['id'], workflow['status'],
                                                                      workflow.get('start', '-'),
-                                                                     workflow.get('end', '-'), workflow['submission'],
+                                                                     workflow.get('end', '-'),
+                                                                     workflow.get('submission', '-'),
                                                                      workflow['name']),
                        file=output)
     elif output_format == 'csv':
