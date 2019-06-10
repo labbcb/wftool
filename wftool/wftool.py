@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 import json
+import itertools
 
 import click
 
@@ -145,14 +146,14 @@ def status(host, job_id, version, output_format, output):
         click.echo(json.dumps(data), file=output)
 
 
-@cli.command('outputs')
+@cli.command()
 @click.option('--host', required=True, help='Server address')
 @click.option('--id', 'job_id', required=True, help='Workflow ID')
 @click.option('--version', default='v1', help='Cromwell API version')
 @click.option('--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
               help='Format of output', show_default=True)
 @click.argument('output', type=click.File('w'), default='-', required=False)
-def get_outputs(host, job_id, version, output_format, output):
+def outputs(host, job_id, version, output_format, output):
     """Get the outputs for a workflow"""
     data = client.outputs(host, job_id, version).json()
 
@@ -166,7 +167,8 @@ def get_outputs(host, job_id, version, output_format, output):
             if type(data['outputs'][task]) is str:
                 click.echo(data['outputs'][task], file=output)
                 continue
-            for file in data['outputs'][task]:
+            files = itertools.chain(data['outputs'][task])
+            for file in files:
                 click.echo(file, file=output)
     elif output_format == 'csv':
         click.echo('Task,File', file=output)
@@ -174,7 +176,8 @@ def get_outputs(host, job_id, version, output_format, output):
             if type(data['outputs'][task]) is str:
                 click.echo('{},{}'.format(task, data['outputs'][task]), file=output)
                 continue
-            for file in data['outputs'][task]:
+            files = itertools.chain(data['outputs'][task])
+            for file in files:
                 click.echo('{},{}'.format(task, file), file=output)
     else:
         click.echo(json.dumps(data), file=output)
@@ -189,9 +192,13 @@ def get_outputs(host, job_id, version, output_format, output):
 @click.argument('destination', default='.', type=click.Path())
 def collect(host, job_id, no_task_dir, copy, version, destination):
     """Copy or move output files of workflow to directory (Cromwell)"""
-    r = client.outputs(host, job_id, version)
-    outputs = r.json()['outputs']
-    for task in outputs:
+    data = client.outputs(host, job_id, version).json()
+
+    if data.get('status', None) == 'fail':
+        click.echo(data['message'], err=True)
+        exit(1)
+
+    for task in data['outputs']:
 
         if no_task_dir:
             task_dir = destination
@@ -200,7 +207,10 @@ def collect(host, job_id, no_task_dir, copy, version, destination):
             if not os.path.exists(task_dir):
                 os.mkdir(task_dir)
 
-        files = [outputs[task]] if type(outputs[task]) is str else outputs[task]
+        if type(data['outputs'][task]) is str:
+            files = [data['outputs'][task]]
+        else:
+            files = itertools.chain(data['outputs'][task])
 
         for file in files:
             if os.path.exists(file):
