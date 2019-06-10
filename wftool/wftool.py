@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 import json
 import itertools
 
@@ -229,11 +228,10 @@ def collect(host, job_id, no_task_dir, copy, version, destination):
                 dest_file = os.path.join(task_dir, os.path.basename(file))
                 if os.path.exists(dest_file):
                     click.echo('File already exists: ' + dest_file, err=True)
-                    sys.exit(1)
+                    exit(1)
                 if copy:
                     shutil.copyfile(file, dest_file)
                 else:
                     shutil.move(file, dest_file)
             else:
                 click.echo('File not found: ' + file, err=True)
-                sys.exit(1)
