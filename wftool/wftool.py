@@ -142,7 +142,7 @@ def status(host, job_id, version, output_format, output):
 
     if data.get('status', None) == 'fail':
         click.echo(data['message'], err=True)
-    exit(1)
+        exit(1)
 
     if output_format == 'console':
         click.echo(data['status'], file=output)
