@@ -319,4 +319,4 @@ def version(host, api, output_format):
     elif output_format == 'csv':
         write_as_csv(data)
     else:
-        click.echo(data)
+        click.echo(data.get('cromwell'))
