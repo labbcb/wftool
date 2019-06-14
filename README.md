@@ -1,2 +1,2 @@
-# wftool task and workflow management for genomics research
+# Workflow and task management for genomics research
 

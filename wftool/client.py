@@ -1,82 +1,48 @@
 import requests
-import validators
+from urllib.parse import urljoin
 
 
-def describe(host, workflow, inputs, language, language_version, version):
-    """Describe a workflow (Cromwell)"""
-    url = host + '/api/womtool/' + version + '/describe'
-    data = {}
+class Client:
+    def __init__(self, host):
+        self.host = host
 
-    if validators.url(workflow):
-        data.workflowUrl = workflow
-    else:
-        data.workflowSource = open(workflow, 'rb')
+    def get(self, path, data=None, raw_response_content=False):
+        """
+        GET API endpoint
+        :param path: API endpoint
+        :param data: query parameters
+        :param raw_response_content: return raw response content instead of parsing as JSON to dict
+        :return: dic object or content of response in bytes
+        """
+        response = requests.get(self.url(path), params=data)
+        return response.content if raw_response_content else response.json()
 
-    if inputs is not None:
-        data.workflowInputs = open(inputs, 'rb')
+    def patch(self, path, data, raw_response_content=False):
+        """
+        PATCH API endpoint
+        :param path: API endpoint
+        :param data: data to send as body
+        :param raw_response_content: return raw response content instead of parsing as JSON to dict
+        :return: dic object or content of response in bytes
+        """
+        response = requests.patch(self.url(path), data=data)
+        return response.content if raw_response_content else response.json()
 
-    if language is not None:
-        data.workflowType = language
+    def post(self, path, data=None, raw_response_content=False):
+        """
+        POST API endpoint
+        :param path: API endpoint
+        :param data: multipart/form-data parameters
+        :param raw_response_content: return raw response content instead of parsing as JSON to dict
+        :return: dic object or content of response in bytes
+        """
+        response = requests.post(self.url(path), files=data)
+        return response.content if raw_response_content else response.json()
 
-    if language_version is not None:
-        if language == 'CWL':
-            language_version = "v" + language_version
-        data.workflowTypeVersion = language_version
-
-    return requests.post(url, files=data)
-
-
-def query(host, version='v1'):
-    """Get workflows matching some criteria (Cromwell)"""
-    url = '{}/api/workflows/{}/query'.format(host, version)
-    return requests.get(url)
-
-
-def logs(host, job_id, version='v1'):
-    """Get the logs for a workflow"""
-    url = '{}/api/workflows/{}/{}/logs'.format(host, version, job_id)
-    return requests.get(url)
-
-
-def status(host, job_id, version='v1'):
-    """Retrieves the current state for a workflow (Cromwell)"""
-    url = '{}/api/workflows/{}/{}/status'.format(host, version, job_id)
-    return requests.get(url)
-
-
-def submit(host, workflow, inputs, dependencies, options, labels, language, language_version, version='v1'):
-    """Submit a workflow for execution (Cromwell)"""
-    data = {}
-
-    if validators.url(workflow):
-        data['workflowUrl'] = workflow
-    else:
-        data['workflowSource'] = open(workflow, 'rb')
-
-    data['workflowInputs'] = open(inputs, 'rb')
-
-    if dependencies is not None:
-        data['workflowDependencies'] = open(dependencies, 'rb')
-
-    if options is not None:
-        data['workflowOptions'] = open(options, 'rb')
-
-    if labels is not None:
-        data['labels'] = open(labels, 'rb')
-
-    if language is not None:
-        data['workflowType'] = language
-
-    if language_version is not None:
-        if language == 'CWL':
-            language_version = "v" + language_version
-        data['workflowTypeVersion'] = language_version
-
-    url = host + '/api/workflows/' + version
-    return requests.post(url, files=data)
-
-
-def outputs(host, job_id, version):
-    """Get the outputs for a workflow"""
-    url = host + '/api/workflows/' + version + '/' + job_id + '/outputs'
-    return requests.get(url)
+    def url(self, path):
+        """
+        Joint host address with API endpoint
+        :param path: API endpoint
+        :return: URL
+        """
+        return urljoin(self.host, path)
