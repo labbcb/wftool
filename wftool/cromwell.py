@@ -23,13 +23,14 @@ class CromwellClient(Client):
         response = super().post(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('status')
 
     def backends(self):
         """
         List the supported backends by Cromwell Server
         :return: dic containing default and supported backends
         """
+
         path = '/api/workflows/{version}/backends'.format(version=self.api_version)
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
@@ -72,6 +73,7 @@ class CromwellClient(Client):
         :param index_b: Shard index for the second call for cases where the requested call was part of a scatter
         :return:
         """
+
         data = dict(callA=call_a, callB=call_b, indexA=index_a, indexB=index_b, workflowA=workflow_id_a,
                     workflowB=workflow_id_b)
 
@@ -86,6 +88,7 @@ class CromwellClient(Client):
         Return the current health status of any monitored subsystems
         :return:
         """
+
         path = '/engine/{version}/status'.format(version=self.api_version)
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
@@ -97,6 +100,7 @@ class CromwellClient(Client):
         Retrieves the current labels for a workflow
         :return:
         """
+
         path = '/api/workflows/{version}/{id}/labels'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
@@ -108,11 +112,12 @@ class CromwellClient(Client):
         Get the logs for a workflow
         :return:
         """
+
         path = '/api/workflows/{version}/{id}/logs'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('calls')
 
     def metadata(self, workflow_id, excludeKey, expandSubWorkflows, includeKey):
         """
@@ -139,7 +144,7 @@ class CromwellClient(Client):
         response = super().get(path, data)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('results')
 
     def release(self, workflow_id):
         """
@@ -150,7 +155,7 @@ class CromwellClient(Client):
         response = super().post(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('status')
 
     def status(self, workflow_id):
         """
@@ -162,7 +167,7 @@ class CromwellClient(Client):
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('status')
 
     def submit(self, workflow, inputs, options=None, dependencies=None, labels=None, language=None,
                language_version=None, root=None, hold=None):
@@ -199,7 +204,7 @@ class CromwellClient(Client):
         response = super().post(path, data)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('id')
 
     def submit_batch(self, workflow, inputs, options=None, dependencies=None, labels=None, language=None,
                      language_version=None, hold=None):
@@ -235,7 +240,7 @@ class CromwellClient(Client):
         response = super().post(path, data)
         if isinstance(response, dict) and response.get('status') == 'fail':
             raise Exception(response.get('message'))
-        return response
+        return [workflow.get('id') for workflow in response]
 
     def timing(self, workflow_id, html=False):
         """
@@ -245,7 +250,7 @@ class CromwellClient(Client):
         :return: URL to web page or HTML data
         """
         path = '/api/workflows/{version}/{id}/timing'.format(id=workflow_id, version=self.api_version)
-        return super().get(path, raw_response_content=True) if html else super().url(path)
+        return super().get(path, raw_response_content=True).decode() if html else super().url(path)
 
     def update_labels(self, workflow_id, labels):
         """
@@ -268,7 +273,7 @@ class CromwellClient(Client):
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('outputs')
 
     def version(self):
         """
@@ -279,4 +284,4 @@ class CromwellClient(Client):
         response = super().get(path)
         if response.get('status') == 'fail' or response.get('status') == 'error':
             raise Exception(response.get('message'))
-        return response
+        return response.get('cromwell')

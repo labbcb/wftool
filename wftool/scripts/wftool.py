@@ -40,12 +40,10 @@ def abort(host, api, id, output_format):
     client = cromwell_client(host)
     data = call_client_method(client.abort, id)
 
-    if output_format == 'json':
-        click.echo(dumps(data))
-    elif output_format == 'csv':
-        write_as_csv(data)
-    else:
-        click.echo(data.get('status'))
+    if output_format != 'console':
+        click.echo('This method only supports console format as output.', err=True)
+
+    click.echo(data)
 
 
 @cli.command()
@@ -53,14 +51,18 @@ def abort(host, api, id, output_format):
 @click.option('--api', default='cromwell', type=click.Choice(['cromwell']), help='API', show_default=True)
 @click.option('--no-task-dir', is_flag=True, default=False, help='Do not create subdirectories for tasks')
 @click.option('--copy/--move', 'copy', default=True, help='Copy or move output files? Copy by default.')
+@click.option('--overwrite', is_flag=True, default=False, help='Overwrite existing files.')
 @click.argument('id')
-@click.argument('destination', default='.', type=click.Path())
-def collect(host, api, id, no_task_dir, copy, destination):
+@click.argument('destination', type=click.Path())
+def collect(host, api, id, no_task_dir, copy, overwrite, destination):
     """Copy or move output files of workflow to directory (Cromwell)"""
     client = cromwell_client(host)
-    data = client.outputs(id)
+    data = call_client_method(client.outputs, id)
 
-    for task in data['outputs']:
+    if not os.path.exists(destination):
+        os.mkdir(destination)
+
+    for task in data:
 
         if no_task_dir:
             task_dir = destination
@@ -69,17 +71,17 @@ def collect(host, api, id, no_task_dir, copy, destination):
             if not os.path.exists(task_dir):
                 os.mkdir(task_dir)
 
-        if type(data['outputs'][task]) is str:
-            files = [data['outputs'][task]]
-        elif any(isinstance(i, list) for i in data['outputs'][task]):
-            files = itertools.chain.from_iterable(data['outputs'][task])
+        if isinstance(data[task], str):
+            files = [data[task]]
+        elif any(isinstance(i, list) for i in data[task]):
+            files = itertools.chain.from_iterable(data[task])
         else:
-            files = data['outputs'][task]
+            files = data[task]
 
         for file in files:
             if os.path.exists(file):
                 dest_file = os.path.join(task_dir, os.path.basename(file))
-                if os.path.exists(dest_file):
+                if os.path.exists(dest_file) and not overwrite:
                     click.echo('File already exists: ' + dest_file, err=True)
                     exit(1)
                 if copy:
@@ -105,7 +107,7 @@ def describe(host, api, workflow, inputs, language, language_version, output_for
     data = call_client_method(client.describe, workflow, inputs, language, language_version)
 
     if output_format != 'json':
-        click.echo('Describe method only support JSON format as output.', err=True)
+        click.echo('This method only supports JSON format as output.', err=True)
 
     click.echo(dumps(data))
 
@@ -121,7 +123,7 @@ def info(host, api, output_format):
     data = call_client_method(client.backends)
 
     if output_format == 'csv':
-        click.echo("Info doesn't support CSV format as output.", err=True)
+        click.echo("This method doesn't support CSV format as output.", err=True)
 
     if output_format == 'json':
         click.echo(dumps(data))
@@ -139,23 +141,23 @@ def info(host, api, output_format):
 def logs(host, api, id, output_format):
     """Get the logs for a workflow (Cromwell)"""
     client = cromwell_client(host)
-    data = client.logs(id)
+    data = call_client_method(client.logs, id)
 
     if output_format == 'json':
         click.echo(dumps(data))
     elif output_format == 'csv':
         fixed_data = []
-        for task_name, logs in data.get('calls').items():
+        for task_name, logs in data.items():
             for log in logs:
                 log['task'] = task_name
                 fixed_data.append(log)
         write_as_csv(fixed_data)
     else:
-        for task in data.get('calls'):
+        for task in data:
             click.echo('Task {}'.format(task))
-            for idx in range(len(data['calls'][task])):
-                click.echo('Shard {} stdout: {}'.format(idx, data['calls'][task][idx]['stdout']))
-                click.echo('Shard {} stderr: {}'.format(idx, data['calls'][task][idx]['stderr']))
+            for idx in range(len(data[task])):
+                click.echo('Shard {} stdout: {}'.format(idx, data[task][idx]['stdout']))
+                click.echo('Shard {} stderr: {}'.format(idx, data[task][idx]['stderr']))
 
 
 @cli.command('list')
@@ -174,10 +176,10 @@ def query(host, api, id, name, status, output_format):
     if output_format == 'json':
         click.echo(dumps(data))
     elif output_format == 'csv':
-        write_as_csv(data.get('results'))
+        write_as_csv(data)
     else:
         click.echo('{:36}  {:9}  {:24}  {:24}  {:24}  {}'.format('ID', 'Status', 'Start', 'End', 'Submitted', 'Name'))
-        for workflow in data.get('results'):
+        for workflow in data:
             click.echo('{:36}  {:9}  {:24}  {:24}  {:24}  {}'.format(workflow.get('id', '-'),
                                                                      workflow.get('status', '-'),
                                                                      workflow.get('start', '-'),
@@ -197,12 +199,10 @@ def release(host, api, id, output_format):
     client = cromwell_client(host)
     data = call_client_method(client.release, id)
 
-    if output_format == 'json':
-        click.echo(dumps(data))
-    elif output_format == 'csv':
-        write_as_csv(data)
-    else:
-        click.echo(data['status'])
+    if output_format != 'console':
+        click.echo('This method only supports console format as output.', err=True)
+
+    click.echo(data)
 
 
 @cli.command()
@@ -214,14 +214,12 @@ def release(host, api, id, output_format):
 def status(host, api, id, output_format):
     """Retrieves the current state for a workflow (Cromwell)"""
     client = cromwell_client(host)
-    data = client.status(id)
+    data = call_client_method(client.status, id)
 
-    if output_format == 'json':
-        click.echo(dumps(data))
-    elif output_format == 'csv':
-        write_as_csv(data)
-    else:
-        click.echo(data['status'])
+    if output_format != 'console':
+        click.echo('This method only supports console format as output.', err=True)
+
+    click.echo(data)
 
 
 @cli.command()
@@ -244,12 +242,10 @@ def submit(host, api, workflow, inputs, dependencies, options, labels, language,
     data = call_client_method(client.submit, workflow, inputs, dependencies, options, labels, language,
                               language_version, root, hold)
 
-    if output_format == 'json':
-        click.echo(dumps(data))
-    elif output_format == 'csv':
-        write_as_csv(data)
-    else:
-        click.echo(data.get('id'))
+    if output_format != 'console':
+        click.echo('This method only supports console format as output.', err=True)
+
+    click.echo(data)
 
 
 @cli.command()
@@ -261,26 +257,29 @@ def submit(host, api, workflow, inputs, dependencies, options, labels, language,
 def outputs(host, api, id, output_format):
     """Get the outputs for a workflow"""
     client = cromwell_client(host)
-    data = client.outputs(id)
-
-    if data.get('status', None) == 'fail':
-        click.echo(data['message'], err=True)
-        exit(1)
+    data = call_client_method(client.outputs, id)
 
     if output_format == 'json':
         click.echo(dumps(data))
     elif output_format == 'csv':
-        write_as_csv(data)
-    else:
-        for task in data['outputs']:
-            click.echo('Task {}'.format(task))
-            if type(data['outputs'][task]) is str:
-                click.echo(data['outputs'][task])
+        fixed_data = []
+        for task_name, outputs in data.items():
+            if isinstance(outputs, str):
+                fixed_data.append(dict(task=task_name, shardIndex=0, file=outputs))
                 continue
-            if any(isinstance(i, list) for i in data['outputs'][task]):
-                files = itertools.chain.from_iterable(data['outputs'][task])
+            for i, output in enumerate(outputs):
+                fixed_data.append(dict(task=task_name, shardIndex=i, file=output))
+        write_as_csv(fixed_data)
+    else:
+        for task in data:
+            click.echo(task)
+            if type(data[task]) is str:
+                click.echo(data[task])
+                continue
+            if any(isinstance(i, list) for i in data[task]):
+                files = itertools.chain.from_iterable(data[task])
             else:
-                files = data['outputs'][task]
+                files = data[task]
             for file in files:
                 click.echo(file)
 
@@ -299,7 +298,7 @@ def validate(host, api, workflow, language, language_version, output_format):
     data = call_client_method(client.describe, workflow, language, language_version)
 
     if output_format != 'console':
-        click.echo('Validate method only support console format as output.', err=True)
+        click.echo('This method only supports console format as output.', err=True)
 
     click.echo('Valid' if data.get('valid') else 'Invalid')
 
@@ -312,11 +311,9 @@ def validate(host, api, workflow, language, language_version, output_format):
 def version(host, api, output_format):
     """Return the version of this Cromwell server"""
     client = cromwell_client(host)
-    data = client.version()
+    data = call_client_method(client.version)
 
-    if output_format == 'json':
-        click.echo(dumps(data))
-    elif output_format == 'csv':
-        write_as_csv(data)
-    else:
-        click.echo(data.get('cromwell'))
+    if output_format != 'console':
+        click.echo('This method only supports console format as output.', err=True)
+
+    click.echo(data)
