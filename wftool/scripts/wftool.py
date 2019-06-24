@@ -285,14 +285,9 @@ def submit(host, api, workflow, inputs, dependencies, options, labels, language,
     click.echo(data)
 
 
-@cli.command()
-@click.option('--host', help='Server address', default='http://localhost:8000', show_default=True)
-@click.option('--api', default='cromwell', type=click.Choice(['cromwell']), help='API', show_default=True)
-@click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
-@click.argument('id')
-def outputs(host, api, id, output_format):
-    """Get the outputs for a workflow"""
+def cromwell_outputs(host, id, output_format):
+    if not host:
+        host = 'http://localhost:8000'
     client = CromwellClient(host)
     data = call_client_method(client.outputs, id)
 
@@ -319,6 +314,34 @@ def outputs(host, api, id, output_format):
                 files = data[task]
             for file in files:
                 click.echo(file)
+
+
+def tes_outputs(host, task_id, output_format):
+    if not host:
+        host = 'http://localhost:8080'
+    client = TesClient(host)
+    data = client.get_task(task_id, view=View.BASIC)
+
+    if output_format == 'json':
+        write_as_json(data.outputs)
+    elif output_format == 'csv':
+        write_as_csv(data.outputs)
+    else:
+        click.echo(data.outputs)
+
+
+@cli.command()
+@click.option('--host', help='Server address')
+@click.option('--api', default='cromwell', type=click.Choice(['cromwell', 'tes']), help='API', show_default=True)
+@click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
+              help='Format of output', show_default=True)
+@click.argument('id')
+def outputs(host, api, id, output_format):
+    """Get the outputs for a workflow"""
+    if api == 'cromwell':
+        cromwell_outputs(host, id, output_format)
+    else:
+        tes_outputs(host, id, output_format)
 
 
 @cli.command()

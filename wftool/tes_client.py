@@ -17,6 +17,33 @@ class TesClient(Client):
         super().__init__(host)
         self.api_version = api_version
 
+    def create_task(self, task):
+        """
+        Create a new task
+        :param task: Task object to be submitted
+        :return:
+        """
+
+        data = dict(task=task)
+        path = '/{version}/tasks'.format(version=self.api_version)
+        return super().post(path, data)
+
+    def get_task(self, task_id, view=View.MINIMAL):
+        """
+        Get a task
+        :param task_id: Task id
+        :param view: Affects the fields included in the returned Task messages.
+            MINIMAL: Task message will include ONLY the fields: ID, State
+            BASIC: Task message will include all fields except: ExecutorLog.stdout, ExecutorLog.stderr, Input.content,
+                system_logs
+            FULL: Task message includes all fields
+        :return: a Task object
+        """
+        data = dict(id=task_id, view=view)
+        path = '/{version}/tasks/{id}'.format(version=self.api_version, id=task_id)
+        response = super().get(path, data)
+        return Task(**response)
+
     def list_tasks(self, view=View.MINIMAL, name_prefix=None, page_size=None, page_token=False):
         """
         List tasks
@@ -37,17 +64,6 @@ class TesClient(Client):
 
         return ListTasksResponse(tasks=[Task(**t) for t in response.get('tasks')],
                                  next_page_token=response.get('next_page_token'))
-
-    def create_task(self, task):
-        """
-        Create a new task
-        :param task: Task object to be submitted
-        :return:
-        """
-
-        data = dict(task=task)
-        path = '/{version}/tasks'.format(version=self.api_version)
-        return super().post(path, data)
 
     def service_info(self):
         """
