@@ -7,7 +7,8 @@ import click
 
 from wftool.scripts import write_as_csv, write_as_json
 from ..cromwell import CromwellClient
-from ..tes import TesClient, View, State
+from ..tes import View
+from ..tes_client import TesClient
 
 
 def call_client_method(method, *args):
