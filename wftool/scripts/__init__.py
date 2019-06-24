@@ -1,4 +1,5 @@
 from csv import DictWriter
+from json import dump
 import sys
 
 
@@ -11,3 +12,12 @@ def write_as_csv(data, file=sys.stdout):
         writer.writerows(data)
     else:
         writer.writerow(data)
+
+
+def write_as_json(data, destination=sys.stdout):
+    """
+    Writes data as JSON format to file
+    :param data: object to be serialized as JSON
+    :param destination: destination file (stdout by default)
+    """
+    dump(data, destination, default=lambda o: o.__dict__)

@@ -2,3 +2,4 @@
 wftool.egg-info
 dist
 build
+venv

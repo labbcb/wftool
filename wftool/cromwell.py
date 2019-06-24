@@ -5,10 +5,15 @@ from wftool.client import Client
 class CromwellClient(Client):
     """
     Cromwell API client.
-    Provides all methods available in the API
+    Provides all methods available of this API
     """
 
     def __init__(self, host, api_version='v1'):
+        """
+        Initializes CromwellClient
+        :param host: Cromwell server URL
+        :param api_version: Cromwell API version
+        """
         super().__init__(host)
         self.api_version = api_version
 
@@ -119,13 +124,13 @@ class CromwellClient(Client):
             raise Exception(response.get('message'))
         return response.get('calls')
 
-    def metadata(self, workflow_id, excludeKey, expandSubWorkflows, includeKey):
+    def metadata(self, workflow_id, exclude_key, expand_sub_workflows, include_key):
         """
         Get workflow and call-level metadata for a specified workflow
         :return:
         """
         path = '/api/workflows/{version}/{id}/metadata'.format(id=workflow_id, version=self.api_version)
-        data = dict()
+        data = dict(excludeKey=exclude_key, expandSubWorkflows=expand_sub_workflows, includeKey=include_key)
         response = super().get(path, data)
         if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
@@ -258,7 +263,7 @@ class CromwellClient(Client):
         :return:
         """
         path = '/api/workflows/{version}/{id}/labels'.format(id=id, version=self.api_version)
-        data = dict()
+        data = dict(id=workflow_id, labels=labels)
         response = super().patch(path, data)
         if response.get('fail', None) == 'fail':
             raise Exception(response['message'])

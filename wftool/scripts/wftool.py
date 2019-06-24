@@ -1,12 +1,13 @@
+import itertools
 import os
 import shutil
 from json import dumps
-import itertools
 
 import click
 
-from wftool import cromwell_client
-from wftool.scripts import write_as_csv
+from wftool.scripts import write_as_csv, write_as_json
+from ..cromwell import CromwellClient
+from ..tes import TesClient, View, State
 
 
 def call_client_method(method, *args):
@@ -37,7 +38,7 @@ def cli():
 @click.argument('id')
 def abort(host, api, id, output_format):
     """Abort a running workflow or task"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.abort, id)
 
     if output_format != 'console':
@@ -56,7 +57,7 @@ def abort(host, api, id, output_format):
 @click.argument('destination', type=click.Path())
 def collect(host, api, id, no_task_dir, copy, overwrite, destination):
     """Copy or move output files of workflow to directory (Cromwell)"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.outputs, id)
 
     if not os.path.exists(destination):
@@ -103,7 +104,7 @@ def collect(host, api, id, no_task_dir, copy, overwrite, destination):
 @click.argument('workflow')
 def describe(host, api, workflow, inputs, language, language_version, output_format):
     """Describe a workflow (Cromwell)"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.describe, workflow, inputs, language, language_version)
 
     if output_format != 'json':
@@ -119,7 +120,7 @@ def describe(host, api, workflow, inputs, language, language_version, output_for
               help='Format of output', show_default=True)
 def info(host, api, output_format):
     """Ger server info"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.backends)
 
     if output_format == 'csv':
@@ -140,7 +141,7 @@ def info(host, api, output_format):
 @click.argument('id')
 def logs(host, api, id, output_format):
     """Get the logs for a workflow (Cromwell)"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.logs, id)
 
     if output_format == 'json':
@@ -160,18 +161,11 @@ def logs(host, api, id, output_format):
                 click.echo('Shard {} stderr: {}'.format(idx, data[task][idx]['stderr']))
 
 
-@cli.command('list')
-@click.option('--host', help='Server address', default='http://localhost:8000', show_default=True)
-@click.option('--api', default='cromwell', type=click.Choice(['cromwell']), help='API', show_default=True)
-@click.option('--id', multiple=True, help='Filter by one or more workflow ID')
-@click.option('--name', multiple=True, help='Filter by one or more workflow name')
-@click.option('--status', multiple=True, help='Filter by one or more workflow status')
-@click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
-def query(host, api, id, name, status, output_format):
-    """List tasks or workflows (Cromwell)"""
-    client = cromwell_client(host)
-    data = call_client_method(client.query, id, name, status)
+def cromwell_query(host, id, name, workflow_status, output_format):
+    if host is None:
+        host = 'http://localhost:8000'
+    client = CromwellClient(host)
+    data = call_client_method(client.query, id, name, workflow_status)
 
     if output_format == 'json':
         click.echo(dumps(data))
@@ -188,6 +182,47 @@ def query(host, api, id, name, status, output_format):
                                                                      workflow.get('name', '-')))
 
 
+def tes_query(host, ids, names, task_states, output_format):
+    if host is None:
+        host = 'http://localhost:8080'
+    client = TesClient(host)
+    data = client.list_tasks(View.FULL)
+
+    if ids:
+        data.tasks = filter(lambda t: t.id in ids, data.tasks)
+    if names:
+        data.tasks = filter(lambda t: t.name in names, data.tasks)
+    if task_states:
+        task_states = [t.upper() for t in task_states]
+        data.tasks = filter(lambda t: t.state in task_states, data.tasks)
+
+    if output_format == 'json':
+        write_as_json(data)
+    elif output_format == 'csv':
+        data = [dict(id=t.id, state=t.state, created=t.creation_time) for t in data.tasks]
+        write_as_csv(data)
+    else:
+        click.echo('{}  {}  {}'.format('ID', 'State', 'Created'))
+        for task in data.tasks:
+            click.echo('{}  {}  {}'.format(task.id, task.state, task.creation_time))
+
+
+@cli.command('list')
+@click.option('--host', help='Server address', show_default=True)
+@click.option('--api', default='cromwell', type=click.Choice(['cromwell', 'tes']), help='API', show_default=True)
+@click.option('--id', multiple=True, help='Filter by one or more workflow ID')
+@click.option('--name', multiple=True, help='Filter by one or more workflow name')
+@click.option('--status', multiple=True, help='Filter by one or more workflow status')
+@click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
+              help='Format of output', show_default=True)
+def query(host, api, id, name, status, output_format):
+    """List tasks or workflows (Cromwell)"""
+    if api == 'cromwell':
+        cromwell_query(host, id, name, status, output_format)
+    elif api == 'tes':
+        tes_query(host, id, name, status, output_format)
+
+
 @cli.command()
 @click.option('--host', help='Server address', default='http://localhost:8000', show_default=True)
 @click.option('--api', default='cromwell', type=click.Choice(['cromwell']), help='API', show_default=True)
@@ -196,7 +231,7 @@ def query(host, api, id, name, status, output_format):
 @click.argument('id')
 def release(host, api, id, output_format):
     """Switch a workflow from 'On Hold' to 'Submitted' status"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.release, id)
 
     if output_format != 'console':
@@ -213,7 +248,7 @@ def release(host, api, id, output_format):
 @click.argument('id')
 def status(host, api, id, output_format):
     """Retrieves the current state for a workflow (Cromwell)"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.status, id)
 
     if output_format != 'console':
@@ -236,9 +271,10 @@ def status(host, api, id, output_format):
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
               help='Format of output', show_default=True)
 @click.argument('workflow')
-def submit(host, api, workflow, inputs, dependencies, options, labels, language, language_version, root, hold, output_format):
+def submit(host, api, workflow, inputs, dependencies, options, labels, language, language_version, root, hold,
+           output_format):
     """Submit a workflow for execution (Cromwell)"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.submit, workflow, inputs, dependencies, options, labels, language,
                               language_version, root, hold)
 
@@ -256,7 +292,7 @@ def submit(host, api, workflow, inputs, dependencies, options, labels, language,
 @click.argument('id')
 def outputs(host, api, id, output_format):
     """Get the outputs for a workflow"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.outputs, id)
 
     if output_format == 'json':
@@ -294,7 +330,7 @@ def outputs(host, api, id, output_format):
 @click.argument('workflow')
 def validate(host, api, workflow, language, language_version, output_format):
     """Describe a workflow (Cromwell)"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.describe, workflow, language, language_version)
 
     if output_format != 'console':
@@ -310,7 +346,7 @@ def validate(host, api, workflow, language, language_version, output_format):
               help='Format of output', show_default=True)
 def version(host, api, output_format):
     """Return the version of this Cromwell server"""
-    client = cromwell_client(host)
+    client = CromwellClient(host)
     data = call_client_method(client.version)
 
     if output_format != 'console':
