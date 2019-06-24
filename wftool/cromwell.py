@@ -21,7 +21,7 @@ class CromwellClient(Client):
 
         path = '/api/workflows/{version}/{id}/abort'.format(id=workflow_id, version=self.api_version)
         response = super().post(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('status')
 
@@ -33,7 +33,7 @@ class CromwellClient(Client):
 
         path = '/api/workflows/{version}/backends'.format(version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
@@ -58,7 +58,7 @@ class CromwellClient(Client):
 
         path = '/api/womtool/{version}/describe'.format(version=self.api_version)
         response = super().post(path, data)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
@@ -79,7 +79,7 @@ class CromwellClient(Client):
 
         path = '/api/workflows/{version}/callcaching/diff'.format(version=self.api_version)
         response = super().get(path, data)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
@@ -91,7 +91,7 @@ class CromwellClient(Client):
 
         path = '/engine/{version}/status'.format(version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
@@ -103,7 +103,7 @@ class CromwellClient(Client):
 
         path = '/api/workflows/{version}/{id}/labels'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
@@ -115,7 +115,7 @@ class CromwellClient(Client):
 
         path = '/api/workflows/{version}/{id}/logs'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('calls')
 
@@ -127,7 +127,7 @@ class CromwellClient(Client):
         path = '/api/workflows/{version}/{id}/metadata'.format(id=workflow_id, version=self.api_version)
         data = dict()
         response = super().get(path, data)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
@@ -142,7 +142,7 @@ class CromwellClient(Client):
         path = '/api/workflows/{version}/query'.format(version=self.api_version)
         data = dict(id=workflow_ids, name=names, status=status)
         response = super().get(path, data)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('results')
 
@@ -153,7 +153,7 @@ class CromwellClient(Client):
         """
         path = '/api/workflows/{version}/{id}/releaseHold'.format(id=workflow_id, version=self.api_version)
         response = super().post(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('status')
 
@@ -165,7 +165,7 @@ class CromwellClient(Client):
         """
         path = '/api/workflows/{version}/{id}/status'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('status')
 
@@ -202,7 +202,7 @@ class CromwellClient(Client):
 
         path = '/api/workflows/{version}'.format(version=self.api_version)
         response = super().post(path, data)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('id')
 
@@ -271,7 +271,7 @@ class CromwellClient(Client):
         """
         path = '/api/workflows/{version}/{id}/outputs'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('outputs')
 
@@ -282,6 +282,6 @@ class CromwellClient(Client):
         """
         path = '/engine/{version}/version'.format(version=self.api_version)
         response = super().get(path)
-        if response.get('status') == 'fail' or response.get('status') == 'error':
+        if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('cromwell')
