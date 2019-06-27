@@ -1,5 +1,5 @@
 from wftool.client import Client
-from wftool.tes import View, ListTasksResponse, Task
+from wftool.tes import View
 
 
 class TesClient(Client):
@@ -41,8 +41,7 @@ class TesClient(Client):
         """
         data = dict(id=task_id, view=view)
         path = '/{version}/tasks/{id}'.format(version=self.api_version, id=task_id)
-        response = super().get(path, data)
-        return Task(**response)
+        return super().get(path, data)
 
     def list_tasks(self, view=View.MINIMAL, name_prefix=None, page_size=None, page_token=False):
         """
@@ -60,10 +59,7 @@ class TesClient(Client):
 
         data = dict(view=view, name_prefix=name_prefix, page_size=page_size, page_token=page_token)
         path = '/{version}/tasks'.format(version=self.api_version)
-        response = super().get(path, data)
-
-        return ListTasksResponse(tasks=[Task(**t) for t in response.get('tasks')],
-                                 next_page_token=response.get('next_page_token'))
+        return super().get(path, data)
 
     def service_info(self):
         """

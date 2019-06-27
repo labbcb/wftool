@@ -190,22 +190,21 @@ def tes_query(host, ids, names, task_states, output_format):
     data = client.list_tasks(View.FULL)
 
     if ids:
-        data.tasks = filter(lambda t: t.id in ids, data.tasks)
+        data['tasks'] = filter(lambda t: t.get('id') in ids, data.get('tasks'))
     if names:
-        data.tasks = filter(lambda t: t.name in names, data.tasks)
+        data['tasks'] = filter(lambda t: t.get('name') in names, data.get('tasks'))
     if task_states:
         task_states = [t.upper() for t in task_states]
-        data.tasks = filter(lambda t: t.state in task_states, data.tasks)
+        data['tasks'] = filter(lambda t: t.get('state') in task_states, data.get('tasks'))
 
     if output_format == 'json':
         write_as_json(data)
     elif output_format == 'csv':
-        data = [dict(id=t.id, state=t.state, created=t.creation_time) for t in data.tasks]
         write_as_csv(data)
     else:
         click.echo('{}  {}  {}'.format('ID', 'State', 'Created'))
-        for task in data.tasks:
-            click.echo('{}  {}  {}'.format(task.id, task.state, task.creation_time))
+        for task in data.get('tasks'):
+            click.echo('{}  {}  {}'.format(task.get('id'), task.get('state'), task.get('creation_time')))
 
 
 @cli.command('list')
