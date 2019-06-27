@@ -20,4 +20,4 @@ def write_as_json(data, destination=sys.stdout):
     :param data: object to be serialized as JSON
     :param destination: destination file (stdout by default)
     """
-    dump(data, destination, default=lambda o: o.__dict__)
+    dump(data, destination)

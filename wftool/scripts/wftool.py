@@ -6,9 +6,8 @@ from json import dumps
 import click
 
 from wftool.scripts import write_as_csv, write_as_json
+from wftool.tes import TesClient
 from ..cromwell import CromwellClient
-from ..tes import View
-from ..tes_client import TesClient
 
 
 def call_client_method(method, *args):
@@ -187,24 +186,30 @@ def tes_query(host, ids, names, task_states, output_format):
     if host is None:
         host = 'http://localhost:8080'
     client = TesClient(host)
-    data = client.list_tasks(View.FULL)
+    data = client.list_tasks('FULL')
 
     if ids:
-        data['tasks'] = filter(lambda t: t.get('id') in ids, data.get('tasks'))
+        data['tasks'] = [t for t in data.get('tasks') if t.get('id') in ids]
     if names:
-        data['tasks'] = filter(lambda t: t.get('name') in names, data.get('tasks'))
+        data['tasks'] = [t for t in data.get('tasks') if t.get('name') in names]
     if task_states:
         task_states = [t.upper() for t in task_states]
-        data['tasks'] = filter(lambda t: t.get('state') in task_states, data.get('tasks'))
+        data['tasks'] = [t for t in data.get('tasks') if t.get('state') in task_states]
 
     if output_format == 'json':
         write_as_json(data)
     elif output_format == 'csv':
         write_as_csv(data)
     else:
-        click.echo('{}  {}  {}'.format('ID', 'State', 'Created'))
+        click.echo('{:24}  {:8}  {:28}  {:3}  {:6}  {:6}'.format('ID', 'State', 'Created', 'CPU', 'RAM', 'DISK'))
         for task in data.get('tasks'):
-            click.echo('{}  {}  {}'.format(task.get('id'), task.get('state'), task.get('creation_time')))
+            resources = task.get('resources')
+            click.echo('{:24}  {:8}  {:28}  {:3}  {:6.2f}  {:6.2f}'.format(task.get('id'),
+                                                                           task.get('state'),
+                                                                           task.get('creation_time'),
+                                                                           resources.get('cpu_cores', 0),
+                                                                           resources.get('ram_gb', 0),
+                                                                           resources.get('disk_gb', 0)))
 
 
 @cli.command('list')
@@ -319,7 +324,7 @@ def tes_outputs(host, task_id, output_format):
     if not host:
         host = 'http://localhost:8080'
     client = TesClient(host)
-    data = client.get_task(task_id, view=View.BASIC)
+    data = client.get_task(task_id, view='BASIC')
 
     if output_format == 'json':
         write_as_json(data.outputs)
