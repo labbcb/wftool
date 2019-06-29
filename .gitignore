@@ -3,3 +3,6 @@ wftool.egg-info
 dist
 build
 venv
+__python__
+__pycache__
+.vscode
