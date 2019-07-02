@@ -32,11 +32,11 @@ def cli():
 
 @cli.command()
 @click.option('--host', help='Server address', required=True)
-@click.argument('id')
-def abort(host):
+@click.argument('workflow_id')
+def abort(host, workflow_id):
     """Abort a running workflow or task"""
     client = CromwellClient(host)
-    data = call_client_method(client.abort, id)
+    data = call_client_method(client.abort, workflow_id)
     click.echo(data)
 
 
