@@ -5,8 +5,8 @@ from json import dumps
 
 import click
 
-from wftool.scripts import write_as_csv, write_as_json
-from wftool.tes import TesClient
+from wftools.scripts import write_as_csv, write_as_json
+from ..tes import TesClient
 from ..cromwell import CromwellClient
 
 

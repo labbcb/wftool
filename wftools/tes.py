@@ -1,4 +1,4 @@
-from wftool.client import Client
+from .client import Client
 
 
 class TesClient(Client):

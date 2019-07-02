@@ -4,21 +4,21 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='wftool',
+    name='wftools',
     version='1.0.0',
-    author="Welliton Souza",
+    author="Welliton de Souza",
     author_email="well309@gmail.com",
     description="Task and workflow management for genomics research",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/labbcb/wftool",
+    url="https://github.com/labbcb/wftools",
     packages=find_packages(),
     install_requires=[
         'Click', 'requests', 'validators'
     ],
     entry_points='''
         [console_scripts]
-        wftool=wftool.scripts.wftool:cli
+        wftools=wftools.scripts.wftools:cli
     ''',
     classifiers=[
         "Programming Language :: Python :: 3",
