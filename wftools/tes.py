@@ -27,6 +27,14 @@ class TesClient(Client):
         path = '/{version}/tasks'.format(version=self.api_version)
         return super().post(path, data)
 
+    def cancel(self, task_id):
+        """
+        Cancel a task
+        :param task_id: Task ID
+        """
+        path = '/{version}/tasks/{id}:cancel'.format(version=self.api_version, id=task_id)
+        return super().post(path)
+
     def get_task(self, task_id, view='MINIMAL'):
         """
         Get a task
