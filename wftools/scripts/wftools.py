@@ -31,7 +31,7 @@ def cli():
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def abort(host, workflow_id):
     """Abort a running workflow"""
@@ -41,7 +41,7 @@ def abort(host, workflow_id):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 @click.argument('task_id')
 def cancel(host, task_id):
     """Abort a running task"""
@@ -51,7 +51,7 @@ def cancel(host, task_id):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('--no-task-dir', is_flag=True, default=False, help='Do not create subdirectories for tasks')
 @click.option('--copy/--move', 'copy', default=True, help='Copy or move output files? Copy by default.')
 @click.option('--overwrite', is_flag=True, default=False, help='Overwrite existing files.')
@@ -95,7 +95,7 @@ def collect(host, workflow_id, no_task_dir, copy, overwrite, destination):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-i', '--inputs', help='Path to inputs file')
 @click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
 @click.option('-v', '--version', type=click.Choice(['draft-2', '1.0']), help='Language version')
@@ -108,7 +108,7 @@ def describe(host, workflow, inputs, language, language_version):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'json']),
               help='Format of output')
 def info(host, output_format):
@@ -124,7 +124,7 @@ def info(host, output_format):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
               help='Format of output')
 @click.argument('workflow_id')
@@ -151,7 +151,7 @@ def logs(host, workflow_id, output_format):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
               help='Format of output')
 @click.argument('workflow_id')
@@ -186,7 +186,7 @@ def outputs(host, workflow_id, output_format):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def release(host, workflow_id):
     """Switch a workflow from 'On Hold' to 'Submitted' status"""
@@ -196,7 +196,7 @@ def release(host, workflow_id):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def status(host, workflow_id):
     """Retrieves the current state for a workflow"""
@@ -206,7 +206,7 @@ def status(host, workflow_id):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 @click.option('-i', '--id', 'ids', multiple=True, help='Filter by one or more task ID')
 @click.option('-n', '--name', 'names', multiple=True, help='Filter by one or more task name')
 @click.option('-s', '--status', 'states', multiple=True, help='Filter by one or more task states')
@@ -242,7 +242,7 @@ def tasks(host, ids, names, states, output_format):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-i', '--inputs', help='Path to inputs file')
 @click.option('-d', '--dependencies',
               help='ZIP file containing workflow source files that are used to resolve local imports')
@@ -262,7 +262,7 @@ def submit(host, workflow, inputs, dependencies, options, labels, language, lang
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-i', '--inputs', help='Path to inputs file')
 @click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
 @click.option('-v', '--version', type=click.Choice(['draft-2', '1.0']), help='Language version')
@@ -280,7 +280,7 @@ def validate(host, workflow, inputs, language, language_version):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 def version(host):
     """Return the version of this Cromwell server"""
     client = CromwellClient(host)
@@ -289,7 +289,7 @@ def version(host):
 
 
 @cli.command()
-@click.option('-h', '--host', help='Server address', required=True)
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-i', '--id', 'ids', multiple=True, help='Filter by one or more workflow IDs')
 @click.option('-n', '--name', 'names', multiple=True, help='Filter by one or more workflow names')
 @click.option('-s', '--status', 'statuses', multiple=True, help='Filter by one or more workflow status')
