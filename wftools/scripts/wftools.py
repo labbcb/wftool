@@ -65,34 +65,33 @@ def collect(host, workflow_id, no_task_dir, copy, overwrite, destination):
     if not os.path.exists(destination):
         os.mkdir(destination)
 
-    for task in data:
-
+    for task_name, task_outputs in data.items():
         if no_task_dir:
             task_dir = destination
         else:
-            task_dir = os.path.join(destination, task)
+            task_dir = os.path.join(destination, task_name)
             if not os.path.exists(task_dir):
                 os.mkdir(task_dir)
 
-        if isinstance(data[task], str):
-            files = [data[task]]
-        elif any(isinstance(i, list) for i in data[task]):
-            files = itertools.chain.from_iterable(data[task])
+        if isinstance(task_outputs, str):
+            files = [task_outputs]
+        elif any(isinstance(i, list) for i in task_outputs):
+            files = itertools.chain.from_iterable(task_outputs)
         else:
-            files = data[task]
+            files = task_outputs
 
-        for file in files:
-            if os.path.exists(file):
-                dest_file = os.path.join(task_dir, os.path.basename(file))
-                if os.path.exists(dest_file) and not overwrite:
-                    click.echo('File already exists: ' + dest_file, err=True)
+        for src_file in files:
+            if os.path.exists(src_file):
+                dst_file = os.path.join(task_dir, os.path.basename(src_file))
+                if os.path.exists(dst_file) and not overwrite:
+                    click.echo('File already exists: ' + dst_file, err=True)
                     exit(1)
                 if copy:
-                    shutil.copyfile(file, dest_file)
+                    shutil.copyfile(src_file, dst_file)
                 else:
-                    shutil.move(file, dest_file)
+                    shutil.move(src_file, dst_file)
             else:
-                click.echo('File not found: ' + file, err=True)
+                click.echo('File not found: ' + src_file, err=True)
 
 
 @cli.command()
@@ -149,6 +148,41 @@ def logs(host, workflow_id, output_format):
             for idx in range(len(data[task])):
                 click.echo('Shard {} stdout: {}'.format(idx, data[task][idx]['stdout']))
                 click.echo('Shard {} stderr: {}'.format(idx, data[task][idx]['stderr']))
+
+
+@cli.command()
+@click.option('--host', help='Server address', required=True)
+@click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
+              help='Format of output', show_default=True)
+@click.argument('workflow_id')
+def outputs(host, workflow_id, output_format):
+    """Get the outputs for a workflow"""
+    client = CromwellClient(host)
+    data = call_client_method(client.outputs, workflow_id)
+
+    if output_format == 'json':
+        click.echo(dumps(data))
+    elif output_format == 'csv':
+        fixed_data = []
+        for task_name, task_outputs in data.items():
+            if isinstance(task_outputs, str):
+                fixed_data.append(dict(task=task_name, shardIndex=0, file=task_outputs))
+                continue
+            for i, output in enumerate(task_outputs):
+                fixed_data.append(dict(task=task_name, shardIndex=i, file=output))
+        write_as_csv(fixed_data)
+    else:
+        for task in data:
+            click.echo(task)
+            if type(data[task]) is str:
+                click.echo(data[task])
+                continue
+            if any(isinstance(i, list) for i in data[task]):
+                files = itertools.chain.from_iterable(data[task])
+            else:
+                files = data[task]
+            for file in files:
+                click.echo(file)
 
 
 @cli.command()
@@ -224,41 +258,6 @@ def submit(host, workflow, inputs, dependencies, options, labels, language, lang
     data = call_client_method(client.submit, workflow, inputs, dependencies, options, labels, language,
                               language_version, root, hold)
     click.echo(data)
-
-
-@cli.command()
-@click.option('--host', help='Server address', required=True)
-@click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
-@click.argument('workflow_id')
-def outputs(host, workflow_id, output_format):
-    """Get the outputs for a workflow"""
-    client = CromwellClient(host)
-    data = call_client_method(client.outputs, workflow_id)
-
-    if output_format == 'json':
-        click.echo(dumps(data))
-    elif output_format == 'csv':
-        fixed_data = []
-        for task_name, task_outputs in data.items():
-            if isinstance(task_outputs, str):
-                fixed_data.append(dict(task=task_name, shardIndex=0, file=task_outputs))
-                continue
-            for i, output in enumerate(task_outputs):
-                fixed_data.append(dict(task=task_name, shardIndex=i, file=output))
-        write_as_csv(fixed_data)
-    else:
-        for task in data:
-            click.echo(task)
-            if type(data[task]) is str:
-                click.echo(data[task])
-                continue
-            if any(isinstance(i, list) for i in data[task]):
-                files = itertools.chain.from_iterable(data[task])
-            else:
-                files = data[task]
-            for file in files:
-                click.echo(file)
 
 
 @cli.command()
