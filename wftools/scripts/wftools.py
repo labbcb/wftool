@@ -110,7 +110,7 @@ def describe(host, workflow, inputs, language, language_version):
 @cli.command()
 @click.option('--host', help='Server address', required=True)
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'json']),
-              help='Format of output', show_default=True)
+              help='Format of output')
 def info(host, output_format):
     """Ger server info"""
     client = CromwellClient(host)
@@ -126,7 +126,7 @@ def info(host, output_format):
 @cli.command()
 @click.option('--host', help='Server address', required=True)
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
+              help='Format of output')
 @click.argument('workflow_id')
 def logs(host, workflow_id, output_format):
     """Get the logs for a workflow"""
@@ -153,7 +153,7 @@ def logs(host, workflow_id, output_format):
 @cli.command()
 @click.option('--host', help='Server address', required=True)
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
+              help='Format of output')
 @click.argument('workflow_id')
 def outputs(host, workflow_id, output_format):
     """Get the outputs for a workflow"""
@@ -211,7 +211,7 @@ def status(host, workflow_id):
 @click.option('--name', 'names', multiple=True, help='Filter by one or more task name')
 @click.option('--status', 'states', multiple=True, help='Filter by one or more task states')
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
+              help='Format of output')
 def tasks(host, ids, names, states, output_format):
     """List tasks"""
     client = TesClient(host)
@@ -293,7 +293,7 @@ def version(host):
 @click.option('--name', 'names', multiple=True, help='Filter by one or more workflow names')
 @click.option('--status', 'statuses', multiple=True, help='Filter by one or more workflow status')
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
-              help='Format of output', show_default=True)
+              help='Format of output')
 def workflows(host, ids, names, statuses, output_format):
     """List workflows"""
     client = CromwellClient(host)
