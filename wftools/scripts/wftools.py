@@ -98,7 +98,7 @@ def collect(host, workflow_id, no_task_dir, copy, overwrite, destination):
 @click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-i', '--inputs', help='Path to inputs file')
 @click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
-@click.option('-v', '--version', type=click.Choice(['draft-2', '1.0']), help='Language version')
+@click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
 @click.argument('workflow')
 def describe(host, workflow, inputs, language, language_version):
     """Describe a workflow"""
@@ -249,7 +249,7 @@ def tasks(host, ids, names, states, output_format):
 @click.option('-o', '--options', help='Path to options file')
 @click.option('-t', '--labels', help='Labels file to apply to this workflow')
 @click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
-@click.option('-v', '--version', type=click.Choice(['draft-2', '1.0']), help='Language version')
+@click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
 @click.option('--hold', is_flag=True, default=False, help='Put workflow on hold upon submission')
 @click.option('--root', help='The root object to be run (CWL)')
 @click.argument('workflow')
@@ -265,7 +265,7 @@ def submit(host, workflow, inputs, dependencies, options, labels, language, lang
 @click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.option('-i', '--inputs', help='Path to inputs file')
 @click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
-@click.option('-v', '--version', type=click.Choice(['draft-2', '1.0']), help='Language version')
+@click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
 @click.argument('workflow')
 def validate(host, workflow, inputs, language, language_version):
     """Validate a workflow and (optionally) its inputs"""
