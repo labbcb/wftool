@@ -225,7 +225,7 @@ def state(host, task_id):
 def tasks(host, ids, names, states, output_format):
     """List tasks"""
     client = TesClient(host)
-    data = client.list_tasks('FULL')
+    data = call_client_method(client.list_tasks, 'FULL')
 
     if ids:
         data['tasks'] = [t for t in data.get('tasks') if t.get('id') in ids]
@@ -242,10 +242,10 @@ def tasks(host, ids, names, states, output_format):
     else:
         click.echo('{:24}  {:8}  {:28}  {:3}  {:6}  {:6}'.format('ID', 'State', 'Created', 'CPU', 'RAM', 'DISK'))
         for task in data.get('tasks'):
-            resources = task.get('resources')
+            resources = task.get('resources') if task.get('resources') else dict()
             click.echo('{:24}  {:8}  {:28}  {:3}  {:6.2f}  {:6.2f}'.format(task.get('id'),
                                                                            task.get('state'),
-                                                                           task.get('creation_time'),
+                                                                           task.get('creation_time', '-'),
                                                                            resources.get('cpu_cores', 0),
                                                                            resources.get('ram_gb', 0),
                                                                            resources.get('disk_gb', 0)))
