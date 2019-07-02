@@ -207,6 +207,16 @@ def status(host, workflow_id):
 
 @cli.command()
 @click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
+@click.argument('task_id')
+def state(host, task_id):
+    """Retrieves the current state of a task"""
+    client = TesClient(host)
+    data = call_client_method(client.get_task, task_id)
+    click.echo(data.get('state'))
+
+
+@cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 @click.option('-i', '--id', 'ids', multiple=True, help='Filter by one or more task ID')
 @click.option('-n', '--name', 'names', multiple=True, help='Filter by one or more task name')
 @click.option('-s', '--status', 'states', multiple=True, help='Filter by one or more task states')
