@@ -245,6 +245,15 @@ def run_workflow(host, workflow, inputs, dependencies, options, tags, language, 
 
 
 @cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
+def service_tes_info(host):
+    """Information about the service such as storage details, resource availability (TES)"""
+    client = TesClient(host)
+    data = call_client_method(client.service_info)
+    write_as_json(data)
+
+
+@cli.command()
 @click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
 def service_wes_info(host):
     """Get information about Workflow Execution Service (WES)"""
