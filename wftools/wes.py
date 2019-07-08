@@ -81,7 +81,7 @@ class WesClient(Client):
         :param run_id:
         :return:
         """
-        path = self._get_path('run/{id}/status'.format(id=run_id))
+        path = self._get_path('{id}/status'.format(id=run_id))
         return super().get(path)
 
     def _get_path(self, part):
