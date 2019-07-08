@@ -6,6 +6,7 @@ from json import dumps
 import click
 
 from wftools.scripts import write_as_csv, write_as_json
+from wftools.wes import WesClient
 from ..tes import TesClient
 from ..cromwell import CromwellClient
 
@@ -196,6 +197,63 @@ def release(host, workflow_id):
 
 
 @cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
+def runs(host):
+    """List the workflow runs (WES)"""
+    client = WesClient(host)
+    data = call_client_method(client.list_runs)
+    write_as_json(data)
+
+
+@cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
+@click.argument('run_id')
+def run_log(host, run_id):
+    """Get detailed info about a workflow run (WES)"""
+    client = WesClient(host)
+    data = call_client_method(client.get_run_log, run_id)
+    click.echo(data)
+
+
+@cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
+@click.argument('run_id')
+def run_status(host, run_id):
+    """Get quick status info about a workflow run (WES)"""
+    client = WesClient(host)
+    data = call_client_method(client.get_run_status, run_id)
+    click.echo(data)
+
+
+@cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
+@click.option('-i', '--inputs', help='Path to inputs file')
+@click.option('-d', '--dependencies',
+              help='ZIP file containing workflow source files that are used to resolve local imports')
+@click.option('-o', '--options', help='Path to options file')
+@click.option('-t', '--tags', help='Labels file to apply to this workflow')
+@click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
+@click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0', 'v1.0']),
+              help='Language version')
+@click.argument('workflow')
+def run_workflow(host, workflow, inputs, dependencies, options, tags, language, language_version):
+    """Run a workflow (WES)"""
+    client = WesClient(host)
+    data = call_client_method(client.run_workflow, workflow, inputs, language, language_version, dependencies, options,
+                              tags)
+    click.echo(data)
+
+
+@cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
+def service_wes_info(host):
+    """Get information about Workflow Execution Service (WES)"""
+    client = WesClient(host)
+    data = call_client_method(client.get_service_info)
+    write_as_json(data)
+
+
+@cli.command()
 @click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def status(host, workflow_id):
@@ -213,6 +271,26 @@ def state(host, task_id):
     client = TesClient(host)
     data = call_client_method(client.get_task, task_id)
     click.echo(data.get('state'))
+
+
+@cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
+@click.option('-i', '--inputs', help='Path to inputs file')
+@click.option('-d', '--dependencies',
+              help='ZIP file containing workflow source files that are used to resolve local imports')
+@click.option('-o', '--options', help='Path to options file')
+@click.option('-t', '--labels', help='Labels file to apply to this workflow')
+@click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
+@click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
+@click.option('--hold', is_flag=True, default=False, help='Put workflow on hold upon submission')
+@click.option('--root', help='The root object to be run (CWL)')
+@click.argument('workflow')
+def submit(host, workflow, inputs, dependencies, options, labels, language, language_version, root, hold):
+    """Submit a workflow for execution"""
+    client = CromwellClient(host)
+    data = call_client_method(client.submit, workflow, inputs, dependencies, options, labels, language,
+                              language_version, root, hold)
+    click.echo(data)
 
 
 @cli.command()
@@ -249,26 +327,6 @@ def tasks(host, ids, names, states, output_format):
                                                                            resources.get('cpu_cores', 0),
                                                                            resources.get('ram_gb', 0),
                                                                            resources.get('disk_gb', 0)))
-
-
-@cli.command()
-@click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
-@click.option('-i', '--inputs', help='Path to inputs file')
-@click.option('-d', '--dependencies',
-              help='ZIP file containing workflow source files that are used to resolve local imports')
-@click.option('-o', '--options', help='Path to options file')
-@click.option('-t', '--labels', help='Labels file to apply to this workflow')
-@click.option('-l', '--language', type=click.Choice(['WDL', 'CWL']), help='Workflow file format')
-@click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
-@click.option('--hold', is_flag=True, default=False, help='Put workflow on hold upon submission')
-@click.option('--root', help='The root object to be run (CWL)')
-@click.argument('workflow')
-def submit(host, workflow, inputs, dependencies, options, labels, language, language_version, root, hold):
-    """Submit a workflow for execution"""
-    client = CromwellClient(host)
-    data = call_client_method(client.submit, workflow, inputs, dependencies, options, labels, language,
-                              language_version, root, hold)
-    click.echo(data)
 
 
 @cli.command()
