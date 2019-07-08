@@ -35,7 +35,7 @@ def cli():
 @click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def abort(host, workflow_id):
-    """Abort a running workflow"""
+    """Abort a running workflow (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.abort, workflow_id)
     click.echo(data)
@@ -55,7 +55,7 @@ def cancel_run(host, task_id):
 @click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 @click.argument('task_id')
 def cancel(host, task_id):
-    """Abort a running task"""
+    """Abort a running task (TES)"""
     client = TesClient(host)
     data = call_client_method(client.cancel, task_id)
     click.echo(data)
@@ -69,7 +69,7 @@ def cancel(host, task_id):
 @click.argument('workflow_id')
 @click.argument('destination', type=click.Path())
 def collect(host, workflow_id, no_task_dir, copy, overwrite, destination):
-    """Copy or move output files of workflow to directory"""
+    """Copy or move output files to directory (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.outputs, workflow_id)
 
@@ -112,7 +112,7 @@ def collect(host, workflow_id, no_task_dir, copy, overwrite, destination):
 @click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
 @click.argument('workflow')
 def describe(host, workflow, inputs, language, language_version):
-    """Describe a workflow"""
+    """Describe a workflow (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.describe, workflow, inputs, language, language_version)
     click.echo(dumps(data))
@@ -123,7 +123,7 @@ def describe(host, workflow, inputs, language, language_version):
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'json']),
               help='Format of output')
 def info(host, output_format):
-    """Ger server info"""
+    """Ger server info (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.backends)
 
@@ -140,7 +140,7 @@ def info(host, output_format):
               help='Format of output')
 @click.argument('workflow_id')
 def logs(host, workflow_id, output_format):
-    """Get the logs for a workflow"""
+    """Get the logs for a workflow (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.logs, workflow_id)
 
@@ -167,7 +167,7 @@ def logs(host, workflow_id, output_format):
               help='Format of output')
 @click.argument('workflow_id')
 def outputs(host, workflow_id, output_format):
-    """Get the outputs for a workflow"""
+    """Get the outputs for a workflow (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.outputs, workflow_id)
 
@@ -200,7 +200,7 @@ def outputs(host, workflow_id, output_format):
 @click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def release(host, workflow_id):
-    """Switch a workflow from 'On Hold' to 'Submitted' status"""
+    """Switch from 'On Hold' to 'Submitted' status (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.release, workflow_id)
     click.echo(data)
@@ -257,7 +257,7 @@ def run_workflow(host, workflow, inputs, dependencies, options, tags, language, 
 @cli.command()
 @click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 def service_tes_info(host):
-    """Information about the service such as storage details, resource availability (TES)"""
+    """Information about the service (TES)"""
     client = TesClient(host)
     data = call_client_method(client.service_info)
     write_as_json(data)
@@ -276,7 +276,7 @@ def service_wes_info(host):
 @click.option('-h', '--host', help='Server address', required=True, envvar='CROMWELL_SERVER')
 @click.argument('workflow_id')
 def status(host, workflow_id):
-    """Retrieves the current state for a workflow"""
+    """Retrieves the current state for a workflow (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.status, workflow_id)
     click.echo(data)
@@ -286,7 +286,7 @@ def status(host, workflow_id):
 @click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 @click.argument('task_id')
 def state(host, task_id):
-    """Retrieves the current state of a task"""
+    """Retrieves the current state of a task (TES)"""
     client = TesClient(host)
     data = call_client_method(client.get_task, task_id)
     click.echo(data.get('state'))
@@ -305,7 +305,7 @@ def state(host, task_id):
 @click.option('--root', help='The root object to be run (CWL)')
 @click.argument('workflow')
 def submit(host, workflow, inputs, dependencies, options, labels, language, language_version, root, hold):
-    """Submit a workflow for execution"""
+    """Submit a workflow for execution (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.submit, workflow, inputs, dependencies, options, labels, language,
                               language_version, root, hold)
@@ -320,7 +320,7 @@ def submit(host, workflow, inputs, dependencies, options, labels, language, lang
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
               help='Format of output')
 def tasks(host, ids, names, states, output_format):
-    """List tasks"""
+    """List tasks (TES)"""
     client = TesClient(host)
     data = call_client_method(client.list_tasks, 'FULL')
 
@@ -355,7 +355,7 @@ def tasks(host, ids, names, states, output_format):
 @click.option('-v', '--version', 'language_version', type=click.Choice(['draft-2', '1.0']), help='Language version')
 @click.argument('workflow')
 def validate(host, workflow, inputs, language, language_version):
-    """Validate a workflow and (optionally) its inputs"""
+    """Validate a workflow and its inputs (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.describe, workflow, inputs, language, language_version)
     if data.get('valid'):
@@ -383,7 +383,7 @@ def version(host):
 @click.option('-f', '--format', 'output_format', default='console', type=click.Choice(['console', 'csv', 'json']),
               help='Format of output')
 def workflows(host, ids, names, statuses, output_format):
-    """List workflows"""
+    """List workflows (Cromwell)"""
     client = CromwellClient(host)
     data = call_client_method(client.query, ids, names, statuses)
 
