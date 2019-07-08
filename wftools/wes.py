@@ -10,6 +10,15 @@ class WesClient(Client):
         self.base_path = '/ga4gh/wes/' + api_version
         super().__init__(host)
 
+    def cancel_run(self, run_id):
+        """
+        Cancel a running workflow
+        :param run_id:
+        :return:
+        """
+        path = self._get_path('{run_id}/cancel'.format(run_id=run_id))
+        return super().post(path)
+
     def get_service_info(self):
         """
         Get information about Workflow Execution Service

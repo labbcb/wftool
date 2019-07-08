@@ -42,6 +42,16 @@ def abort(host, workflow_id):
 
 
 @cli.command()
+@click.option('-h', '--host', help='Server address', required=True, envvar='WES_SERVER')
+@click.argument('task_id')
+def cancel_run(host, task_id):
+    """Cancel a running workflow (WES)"""
+    client = WesClient(host)
+    data = call_client_method(client.cancel_run, task_id)
+    click.echo(data)
+
+
+@cli.command()
 @click.option('-h', '--host', help='Server address', required=True, envvar='TES_SERVER')
 @click.argument('task_id')
 def cancel(host, task_id):
