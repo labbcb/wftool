@@ -10,7 +10,7 @@ class WesClient(Client):
         self.base_path = '/ga4gh/wes/' + api_version
         super().__init__(host)
 
-    def cancel_run(self, run_id):
+    def abort(self, run_id):
         """
         Cancel a running workflow
         :param run_id:
@@ -19,7 +19,7 @@ class WesClient(Client):
         path = self._get_path('{run_id}/cancel'.format(run_id=run_id))
         return super().post(path)
 
-    def get_service_info(self):
+    def info(self):
         """
         Get information about Workflow Execution Service
         :return:
@@ -27,7 +27,7 @@ class WesClient(Client):
         path = self._get_path('service-info')
         return super().get(path)
 
-    def list_runs(self, page_size=None, page_token=None):
+    def list(self, page_size=None, page_token=None):
         """
         List the workflow runs
         :param page_size:
@@ -38,8 +38,26 @@ class WesClient(Client):
         path = self._get_path('runs')
         return super().get(path, data)
 
-    def run_workflow(self, workflow_url, workflow_params, workflow_type, workflow_type_version, workflow_attachment,
-                     workflow_engine_parameters=None, tags=None):
+    def logs(self, run_id):
+        """
+        Get detailed info about a workflow run
+        :param run_id: Workflow run ID
+        :return:
+        """
+        path = self._get_path('run/{id}'.format(id=run_id))
+        return super().get(path)
+
+    def status(self, run_id):
+        """
+        Get quick status info about a workflow run
+        :param run_id:
+        :return:
+        """
+        path = self._get_path('{id}/status'.format(id=run_id))
+        return super().get(path)
+
+    def submit(self, workflow_url, workflow_params, workflow_type, workflow_type_version, workflow_attachment,
+               workflow_engine_parameters=None, tags=None):
         """
         Run a workflow
         :param workflow_url: URL or relative path (attachment) to primary workflow
@@ -65,24 +83,6 @@ class WesClient(Client):
 
         path = self._get_path('runs')
         return super().post(path, data)
-
-    def get_run_log(self, run_id):
-        """
-        Get detailed info about a workflow run
-        :param run_id: Workflow run ID
-        :return:
-        """
-        path = self._get_path('run/{id}'.format(id=run_id))
-        return super().get(path)
-
-    def get_run_status(self, run_id):
-        """
-        Get quick status info about a workflow run
-        :param run_id:
-        :return:
-        """
-        path = self._get_path('{id}/status'.format(id=run_id))
-        return super().get(path)
 
     def _get_path(self, part):
         return '{base_path}/{part}'.format(base_path=self.base_path, part=part)

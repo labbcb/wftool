@@ -16,18 +16,7 @@ class TesClient(Client):
         super().__init__(host)
         self.api_version = api_version
 
-    def create_task(self, task):
-        """
-        Create a new task
-        :param task: Task object to be submitted
-        :return:
-        """
-
-        data = dict(task=task)
-        path = '/{version}/tasks'.format(version=self.api_version)
-        return super().post(path, data)
-
-    def cancel(self, task_id):
+    def abort(self, task_id):
         """
         Cancel a task
         :param task_id: Task ID
@@ -35,7 +24,42 @@ class TesClient(Client):
         path = '/{version}/tasks/{id}:cancel'.format(version=self.api_version, id=task_id)
         return super().post(path)
 
-    def get_task(self, task_id, view='MINIMAL'):
+    def create_task(self, task):
+        """
+        Create a new task
+        :param task: Task object to be submitted
+        :return:
+        """
+        data = dict(task=task)
+        path = '/{version}/tasks'.format(version=self.api_version)
+        return super().post(path, data)
+
+    def info(self):
+        """
+        Information about the service such as storage details, resource availability
+        :return:
+        """
+        path = '/{version}/tasks/service-info'.format(version=self.api_version)
+        return super().get(path)
+
+    def list(self, view='MINIMAL', name_prefix=None, page_size=None, page_token=False):
+        """
+        List tasks
+        :param view: Affects the fields included in the returned Task messages.
+            MINIMAL: Task message will include ONLY the fields: ID, State
+            BASIC: Task message will include all fields except: ExecutorLog.stdout, ExecutorLog.stderr, Input.content,
+                system_logs
+            FULL: Task message includes all fields
+        :param name_prefix: Filter the list to include tasks where the name matches this prefix
+        :param page_size: Number of tasks to return in one page
+        :param page_token: Page token is used to retrieve the next page of results
+        :return:
+        """
+        data = dict(view=view.upper(), name_prefix=name_prefix, page_size=page_size, page_token=page_token)
+        path = '/{version}/tasks'.format(version=self.api_version)
+        return super().get(path, data)
+
+    def status(self, task_id, view='MINIMAL'):
         """
         Get a task
         :param task_id: Task id
@@ -49,30 +73,3 @@ class TesClient(Client):
         data = dict(id=task_id, view=view)
         path = '/{version}/tasks/{id}'.format(version=self.api_version, id=task_id)
         return super().get(path, data)
-
-    def list_tasks(self, view='MINIMAL', name_prefix=None, page_size=None, page_token=False):
-        """
-        List tasks
-        :param view: Affects the fields included in the returned Task messages.
-            MINIMAL: Task message will include ONLY the fields: ID, State
-            BASIC: Task message will include all fields except: ExecutorLog.stdout, ExecutorLog.stderr, Input.content,
-                system_logs
-            FULL: Task message includes all fields
-        :param name_prefix: Filter the list to include tasks where the name matches this prefix
-        :param page_size: Number of tasks to return in one page
-        :param page_token: Page token is used to retrieve the next page of results
-        :return:
-        """
-
-        data = dict(view=view.upper(), name_prefix=name_prefix, page_size=page_size, page_token=page_token)
-        path = '/{version}/tasks'.format(version=self.api_version)
-        return super().get(path, data)
-
-    def service_info(self):
-        """
-        Information about the service such as storage details, resource availability
-        :return:
-        """
-
-        path = '/{version}/tasks/service-info'.format(version=self.api_version)
-        return super().get(path)

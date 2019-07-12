@@ -1,4 +1,5 @@
 import validators
+
 from .client import Client
 
 
@@ -23,24 +24,11 @@ class CromwellClient(Client):
         :param workflow_id: Workflow ID
         :return: dict containing workflow ID and updated status
         """
-
         path = '/api/workflows/{version}/{id}/abort'.format(id=workflow_id, version=self.api_version)
         response = super().post(path)
         if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response.get('status')
-
-    def backends(self):
-        """
-        List the supported backends by Cromwell Server
-        :return: dic containing default and supported backends
-        """
-
-        path = '/api/workflows/{version}/backends'.format(version=self.api_version)
-        response = super().get(path)
-        if response.get('status') in ('fail', 'error'):
-            raise Exception(response.get('message'))
-        return response
 
     def describe(self, workflow, inputs=None, language=None, language_version=None):
         """
@@ -51,7 +39,6 @@ class CromwellClient(Client):
         :param language_version: Workflow language version (draft-2, 1.0 for WDL or v1.0 for CWL)
         :return:
         """
-
         data = dict(workflowType=language, workflowTypeVersion=language_version)
         if validators.url(workflow):
             data['workflowUrl'] = workflow
@@ -78,7 +65,6 @@ class CromwellClient(Client):
         :param index_b: Shard index for the second call for cases where the requested call was part of a scatter
         :return:
         """
-
         data = dict(callA=call_a, callB=call_b, indexA=index_a, indexB=index_b, workflowA=workflow_id_a,
                     workflowB=workflow_id_b)
 
@@ -93,8 +79,18 @@ class CromwellClient(Client):
         Return the current health status of any monitored subsystems
         :return:
         """
-
         path = '/engine/{version}/status'.format(version=self.api_version)
+        response = super().get(path)
+        if response.get('status') in ('fail', 'error'):
+            raise Exception(response.get('message'))
+        return response
+
+    def info(self):
+        """
+        List the supported backends by Cromwell Server
+        :return: dic containing default and supported backends
+        """
+        path = '/api/workflows/{version}/backends'.format(version=self.api_version)
         response = super().get(path)
         if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
@@ -105,19 +101,32 @@ class CromwellClient(Client):
         Retrieves the current labels for a workflow
         :return:
         """
-
         path = '/api/workflows/{version}/{id}/labels'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
         if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
 
+    def list(self, workflow_ids=None, names=None, status=None):
+        """
+        Get workflows matching some criteria
+        :param workflow_ids: Returns only workflows with the specified workflow IDs
+        :param names: Returns only workflows with the specified name
+        :param status: Returns only workflows with the specified status
+        :return:
+        """
+        path = '/api/workflows/{version}/query'.format(version=self.api_version)
+        data = dict(id=workflow_ids, name=names, status=status)
+        response = super().get(path, data)
+        if response.get('status') in ('fail', 'error'):
+            raise Exception(response.get('message'))
+        return response.get('results')
+
     def logs(self, workflow_id):
         """
         Get the logs for a workflow
         :return:
         """
-
         path = '/api/workflows/{version}/{id}/logs'.format(id=workflow_id, version=self.api_version)
         response = super().get(path)
         if response.get('status') in ('fail', 'error'):
@@ -135,21 +144,6 @@ class CromwellClient(Client):
         if response.get('status') in ('fail', 'error'):
             raise Exception(response.get('message'))
         return response
-
-    def query(self, workflow_ids=None, names=None, status=None):
-        """
-        Get workflows matching some criteria
-        :param workflow_ids: Returns only workflows with the specified workflow IDs
-        :param names: Returns only workflows with the specified name
-        :param status: Returns only workflows with the specified status
-        :return:
-        """
-        path = '/api/workflows/{version}/query'.format(version=self.api_version)
-        data = dict(id=workflow_ids, name=names, status=status)
-        response = super().get(path, data)
-        if response.get('status') in ('fail', 'error'):
-            raise Exception(response.get('message'))
-        return response.get('results')
 
     def release(self, workflow_id):
         """
@@ -189,7 +183,6 @@ class CromwellClient(Client):
         :param hold: Put workflow on hold upon submission. By default, it is taken as false
         :return:
         """
-
         data = dict(workflowRoot=root, workflowOnHold=hold, workflowType=language, workflowTypeVersion=language_version)
         if validators.url(workflow):
             data['workflowUrl'] = workflow
@@ -225,7 +218,6 @@ class CromwellClient(Client):
         :param hold: Put workflow on hold upon submission. By default, it is taken as false
         :return:
         """
-
         data = dict(workflowOnHold=hold, workflowType=language, workflowTypeVersion=language_version)
         if validators.url(workflow):
             data['workflowUrl'] = workflow
