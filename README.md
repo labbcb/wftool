@@ -1,7 +1,7 @@
 # Workflow and task management for genomics research
 
 __wftools__ is a command line tool and package for managing genomics data processing workflows.
-It communicate with workflows and tasks execution server through the following APIs:
+It communicate with workflows and tasks execution servers through the following APIs:
 
 - [Cromwell](https://cromwell.readthedocs.io/en/develop/api/RESTAPI/)
 - [Workflow Execution Service (WES)](https://github.com/ga4gh/workflow-execution-service-schemas)
