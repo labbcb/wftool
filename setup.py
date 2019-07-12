@@ -8,7 +8,7 @@ setup(
     version='1.0.0',
     author="Welliton de Souza",
     author_email="well309@gmail.com",
-    description="Task and workflow management for genomics research",
+    description="Workflow and task management for genomics research",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/labbcb/wftools",

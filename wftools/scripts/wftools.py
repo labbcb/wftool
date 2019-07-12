@@ -33,7 +33,7 @@ def cli():
 
 @cli.group()
 def cromwell():
-    """Cromwell API commands"""
+    """Cromwell"""
 
 
 @cromwell.command('abort')
@@ -277,7 +277,7 @@ def cromwell_version(host):
 
 @cli.group()
 def tes():
-    """GA4GH TES API commands"""
+    """Task Execution Schema"""
 
 
 @tes.command('abort')
@@ -347,7 +347,7 @@ def tes_status(host, task_id):
 
 @cli.group()
 def wes():
-    """GA4GH WES API commands"""
+    """Workflow Execution Schema"""
 
 
 @wes.command('abort')
