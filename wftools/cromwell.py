@@ -1,5 +1,4 @@
-import validators
-
+from . import is_url
 from .client import Client
 
 
@@ -40,7 +39,7 @@ class CromwellClient(Client):
         :return:
         """
         data = dict(workflowType=language, workflowTypeVersion=language_version)
-        if validators.url(workflow):
+        if is_url(workflow):
             data['workflowUrl'] = workflow
         else:
             data['workflowSource'] = open(workflow, 'rb')
@@ -184,7 +183,7 @@ class CromwellClient(Client):
         :return:
         """
         data = dict(workflowRoot=root, workflowOnHold=hold, workflowType=language, workflowTypeVersion=language_version)
-        if validators.url(workflow):
+        if is_url(workflow):
             data['workflowUrl'] = workflow
         else:
             data['workflowSource'] = open(workflow, 'rb')
@@ -219,7 +218,7 @@ class CromwellClient(Client):
         :return:
         """
         data = dict(workflowOnHold=hold, workflowType=language, workflowTypeVersion=language_version)
-        if validators.url(workflow):
+        if is_url(workflow):
             data['workflowUrl'] = workflow
         else:
             data['workflowSource'] = open(workflow, 'rb')

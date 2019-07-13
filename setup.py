@@ -14,7 +14,7 @@ setup(
     url="https://github.com/labbcb/wftools",
     packages=find_packages(),
     install_requires=[
-        'Click', 'requests', 'validators'
+        'Click', 'requests'
     ],
     entry_points='''
         [console_scripts]
