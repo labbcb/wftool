@@ -1,6 +1,6 @@
 import re
 
-name = "wftools"
+name = 'wftools'
 
 
 def is_url(path):

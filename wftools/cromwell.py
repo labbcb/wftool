@@ -167,7 +167,7 @@ class CromwellClient(Client):
             raise Exception(response.get('message'))
         return response.get('status')
 
-    def submit(self, workflow, inputs, options=None, dependencies=None, labels=None, language=None,
+    def submit(self, workflow, inputs=None, options=None, dependencies=None, labels=None, language=None,
                language_version=None, root=None, hold=None):
         """
         Submit a workflow for execution
@@ -188,7 +188,8 @@ class CromwellClient(Client):
         else:
             data['workflowSource'] = open(workflow, 'rb')
 
-        data['workflowInputs'] = open(inputs, 'rb')
+        if inputs is not None:
+            data['workflowInputs'] = open(inputs, 'rb')
 
         if dependencies is not None:
             data['workflowDependencies'] = open(dependencies, 'rb')
